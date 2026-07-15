@@ -43,22 +43,27 @@
         ];
 
         window.onload = function() {
-            // 修正：限制地圖邊界，防止跳轉
+            // 修正：徹底禁止地圖無限循環與自動跳轉
             map = L.map('map', { 
                 attributionControl: false, 
                 minZoom: 2, 
                 maxZoom: 6, 
                 zoomControl: false,
-                worldCopyJump: false, 
-                maxBounds: [[-90, -180], [90, 180]] 
+                worldCopyJump: false,      // 徹底禁止跨越地圖副本
+                crs: L.CRS.EPSG3857,       // 確保座標系統穩定
+                maxBounds: [
+                    [-90, -180],           // 南西角
+                    [90, 180]              // 北東角
+                ],
+                maxBoundsViscosity: 1.0    // 設定為 1.0 表示地圖絕對「黏」在邊界，滑不出去
             }).setView([20, 0], 2);
             
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; CartoDB',
                 subdomains: 'abcd',
+                noWrap: true,              // 重要：禁止地圖橫向重複顯示
                 maxZoom: 20
             }).addTo(map);
-
             map.on('click', function(e) {
                 if (document.getElementById('map-page').style.display !== 'block') return;
                 
