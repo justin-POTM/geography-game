@@ -142,13 +142,22 @@ function finishGame() {
 }
 
 function saveScore() {
+    // 這一行確保如果讀到的是空的，就初始化為 {} 物件，而不是 [] 陣列
     let scores = JSON.parse(localStorage.getItem('geoScores') || '{}');
+    
+    // 如果解析出來的不是物件（例如舊的陣列），強制重置為物件
+    if (typeof scores !== 'object' || Array.isArray(scores)) {
+        scores = {};
+    }
+
     if(!scores[currentCat]) scores[currentCat] = [];
+    
     scores[currentCat].push(totalScore);
     scores[currentCat].sort((a,b) => b - a);
     scores[currentCat] = scores[currentCat].slice(0, 5);
+    
     localStorage.setItem('geoScores', JSON.stringify(scores));
-    console.log("儲存成功! 分類:", currentCat, "分數:", totalScore);
+    console.log("儲存成功! 資料結構已修正:", scores);
 }
 
 function renderLeaderboard() {
