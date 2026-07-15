@@ -45,10 +45,10 @@
             map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(map);
             
-            map.on('click', (e) => {
+           map.on('click', (e) => {
                 if (document.getElementById('map-page').style.display !== 'block') return;
                 
-                // 自動修正邏輯：計算玩家點擊與目標城市在世界中的最短距離
+                // 1. 自動修正邏輯：找出與點擊點距離最近的那個副本坐標
                 let possibleLngs = [currentTarget.lng, currentTarget.lng - 360, currentTarget.lng + 360];
                 let minDist = Infinity;
                 let bestTarget = [currentTarget.lat, currentTarget.lng];
@@ -58,16 +58,18 @@
                     if (d < minDist) { minDist = d; bestTarget = [currentTarget.lat, lng]; }
                 });
 
+                // 2. 評分計算
                 const pts = Math.max(0, 100 - Math.floor(minDist / 50000));
                 totalScore += pts;
                 updateScore(pts);
+
+                // 3. 關鍵修正：畫線時使用 bestTarget，而不是原本的 currentTarget
                 if(polyline) map.removeLayer(polyline);
                 polyline = L.polyline([e.latlng, bestTarget], {color: '#e74c3c', weight: 4}).addTo(map);
                 
                 round++;
                 setTimeout(nextRound, 1500);
             });
-        };
 
         function updateScore(pts) {
             document.getElementById('score-board').innerText = "總分: " + totalScore;
