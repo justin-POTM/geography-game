@@ -23,12 +23,14 @@
         <button onclick="startGame()">開始遊戲</button>
         <div id="leaderboard-display" style="margin-top:20px; text-align:center;"></div>
     </div>
+
     <div id="map-page">
         <div id="ui">請點擊目標城市</div>
         <div id="score-board">總分: 0</div>
         <div id="score-popup">+0</div>
         <div id="map"></div>
     </div>
+
     <div id="result-page" class="page">
         <h2 id="final-score"></h2>
         <button onclick="location.reload()">回首頁</button>
@@ -37,6 +39,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         let map, polyline, round, totalScore, currentTarget, remainingCities;
+        let isLocked = false; // 鎖定開關
         const cityList = [
             { name: "台北", lat: 25.033, lng: 121.565 }, { name: "東京", lat: 35.676, lng: 139.650 }, 
             { name: "巴黎", lat: 48.856, lng: 2.352 }, { name: "倫敦", lat: 51.507, lng: -0.127 }, 
@@ -47,20 +50,17 @@
 
         window.onload = () => {
             renderLeaderboard();
-            // 設定地圖邊界，並關閉循環 (noWrap)
-            map = L.map('map', { 
-                attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false,
-                maxBounds: [[-90, -180], [90, 180]],
-                maxBoundsViscosity: 1.0 
-            }).setView([20, 0], 2);
-            
+            // 修正錯誤：移除 maxBounds 以避免 400 錯誤，改用 noWrap 防止循環
+            map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { 
                 subdomains: 'abcd',
-                noWrap: true 
+                noWrap: true // 禁止地圖橫向循環，避免邊界圖塊請求失敗
             }).addTo(map);
             
             map.on('click', (e) => {
-                if (document.getElementById('map-page').style.display !== 'block') return;
+                if (isLocked) return; // 若鎖定中，忽略點擊
+                
+                isLocked = true; // 點擊後鎖定
                 
                 const targetPos = [currentTarget.lat, currentTarget.lng];
                 const dist = map.distance(e.latlng, targetPos);
@@ -73,7 +73,10 @@
                 polyline = L.polyline([e.latlng, targetPos], {color: '#e74c3c', weight: 4}).addTo(map);
                 
                 round++;
-                setTimeout(nextRound, 1500);
+                setTimeout(() => {
+                    isLocked = false; // 1.5秒後解除鎖定
+                    nextRound();
+                }, 1500);
             });
         };
 
@@ -95,7 +98,7 @@
         }
 
         function nextRound() {
-            if (round > 10) { // 設定為 10 關
+            if (round > 10) {
                 saveScore(totalScore);
                 document.getElementById('final-score').innerText = "最終得分：" + totalScore;
                 document.getElementById('map-page').style.display = 'none';
