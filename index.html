@@ -17,7 +17,6 @@
     <div id="home-page" class="page" style="display: flex;">
         <h1>地理定位大挑戰</h1>
         <button onclick="showPage('game-setup')">開始遊戲</button>
-        <button onclick="showLeaderboard()">排行榜</button>
     </div>
     <div id="game-setup" class="page">
         <h2>選擇模式</h2>
@@ -44,20 +43,32 @@
         ];
 
         window.onload = function() {
-            map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
+            // 修正：限制地圖邊界，防止跳轉
+            map = L.map('map', { 
+                attributionControl: false, 
+                minZoom: 2, 
+                maxZoom: 6, 
+                zoomControl: false,
+                worldCopyJump: false, 
+                maxBounds: [[-90, -180], [90, 180]] 
+            }).setView([20, 0], 2);
             
-            // 使用 CartoDB 的無標籤圖層，保證穩定且免費
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; CartoDB',
-    subdomains: 'abcd',
-    maxZoom: 20
-}).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CartoDB',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
 
             map.on('click', function(e) {
                 if (document.getElementById('map-page').style.display !== 'block') return;
-                const dist = map.distance(e.latlng, [currentTarget.lat, currentTarget.lng]);
+                
+                // 修正：確保點擊位置計算正確
+                const latlng = e.latlng;
+                const dist = map.distance(latlng, [currentTarget.lat, currentTarget.lng]);
+                
                 if(polyline) map.removeLayer(polyline);
-                polyline = L.polyline([e.latlng, [currentTarget.lat, currentTarget.lng]], {color: '#e74c3c'}).addTo(map);
+                polyline = L.polyline([latlng, [currentTarget.lat, currentTarget.lng]], {color: '#e74c3c', weight: 4}).addTo(map);
+                
                 totalScore += (mode === 1) ? (dist < 100000 ? 100 : 0) : Math.max(0, 100 - Math.floor(dist / 50000));
                 round++;
                 setTimeout(nextRound, 1000);
