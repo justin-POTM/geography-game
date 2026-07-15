@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e50">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>地理定位大挑戰</title>
@@ -19,6 +21,12 @@
     </style>
 </head>
 <body>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Service Worker 已註冊'));
+  }
+</script>
     <div id="home-page" class="page" style="display: flex;">
         <h1>地理定位大挑戰</h1>
         <button onclick="showPage('mode-page')">選擇模式</button>
