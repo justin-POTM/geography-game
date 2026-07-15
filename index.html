@@ -46,14 +46,12 @@
         window.onload = function() {
             map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
             
-            // 使用 Stamen Toner Background (無地名，純國界背景)
-            // 這是完全免費且無需 API Key 的圖層
-            L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-background/{z}/{x}/{y}{r}.png', {
-                attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.',
-                subdomains: 'abcd',
-                minZoom: 0,
-                maxZoom: 20
-            }).addTo(map);
+            // 使用 CartoDB 的無標籤圖層，保證穩定且免費
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; CartoDB',
+    subdomains: 'abcd',
+    maxZoom: 20
+}).addTo(map);
 
             map.on('click', function(e) {
                 if (document.getElementById('map-page').style.display !== 'block') return;
