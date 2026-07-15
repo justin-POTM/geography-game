@@ -44,9 +44,10 @@
             map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(map);
             
-            map.on('click', (e) => {
+map.on('click', (e) => {
                 if (document.getElementById('map-page').style.display !== 'block') return;
-                
+
+                // 1. 找出最近的副本坐標 (這部分原本的邏輯是對的)
                 let possibleLngs = [currentTarget.lng, currentTarget.lng - 360, currentTarget.lng + 360];
                 let minDist = Infinity;
                 let bestTarget = [currentTarget.lat, currentTarget.lng];
@@ -56,12 +57,22 @@
                     if (d < minDist) { minDist = d; bestTarget = [currentTarget.lat, lng]; }
                 });
 
+                // 2. 評分
                 const pts = Math.max(0, 100 - Math.floor(minDist / 50000));
                 totalScore += pts;
                 updateScore(pts);
 
+                // 3. 修正紅線：
+                // 如果兩點經度差超過 180 度，Leaflet 會畫出一條繞地球的長線
+                // 我們改用更簡單的顯示方式：直接在點擊處和目標點畫線
                 if(polyline) map.removeLayer(polyline);
-                polyline = L.polyline([e.latlng, bestTarget], {color: '#e74c3c', weight: 4}).addTo(map);
+                
+                // 這是最簡單也最穩定的畫線法
+                polyline = L.polyline([e.latlng, bestTarget], {
+                    color: '#e74c3c', 
+                    weight: 4,
+                    noClip: true // 防止 Leaflet 自動對線條進行剪裁導致的視覺錯誤
+                }).addTo(map);
                 
                 round++;
                 setTimeout(nextRound, 1500);
