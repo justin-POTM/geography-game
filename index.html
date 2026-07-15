@@ -30,7 +30,7 @@
     </div>
 
     <div id="map-page" class="page">
-        <div id="ui">正在載入地圖...</div>
+        <div id="ui">地圖載入中...</div>
         <div id="map"></div>
     </div>
 
@@ -41,15 +41,14 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // 優化：限制縮放層級以加快渲染
+        // 初始化地圖，並使用你的 API Key
         const map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6 }).setView([20, 0], 2);
-        
-        // 使用 Stadia Maps 快速圖層
-        L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_retina/{z}/{x}/{y}{r}.png', {
-            attribution: 'Tiles &copy; Stadia Maps',
-            ext: 'png'
+        L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_retina/{z}/{x}/{y}{r}.png?api_key=2c5f75f1-937e-48e9-9031-c5b0c24f6d23', {
+            attribution: 'Stadia Maps',
+            maxZoom: 20
         }).addTo(map);
 
+        // 30 個城市資料庫
         const cityList = [
             { name: "台北", lat: 25.033, lng: 121.565 }, { name: "東京", lat: 35.676, lng: 139.650 },
             { name: "巴黎", lat: 48.856, lng: 2.352 }, { name: "倫敦", lat: 51.507, lng: -0.127 },
