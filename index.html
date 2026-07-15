@@ -23,14 +23,12 @@
         <button onclick="startGame()">開始遊戲</button>
         <div id="leaderboard-display" style="margin-top:20px; text-align:center;"></div>
     </div>
-
     <div id="map-page">
         <div id="ui">請點擊目標城市</div>
         <div id="score-board">總分: 0</div>
         <div id="score-popup">+0</div>
         <div id="map"></div>
     </div>
-
     <div id="result-page" class="page">
         <h2 id="final-score"></h2>
         <button onclick="location.reload()">回首頁</button>
@@ -39,7 +37,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         let map, polyline, round, totalScore, currentTarget, remainingCities;
-        let isLocked = false; // 鎖定開關
+        let isLocked = false; // 新增鎖定開關
         const cityList = [
             { name: "台北", lat: 25.033, lng: 121.565 }, { name: "東京", lat: 35.676, lng: 139.650 }, 
             { name: "巴黎", lat: 48.856, lng: 2.352 }, { name: "倫敦", lat: 51.507, lng: -0.127 }, 
@@ -50,17 +48,17 @@
 
         window.onload = () => {
             renderLeaderboard();
-            // 修正錯誤：移除 maxBounds 以避免 400 錯誤，改用 noWrap 防止循環
+            // 修正：移除 maxBounds 避免 400 錯誤，改用 noWrap: true 確保地圖邊界正確
             map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { 
                 subdomains: 'abcd',
-                noWrap: true // 禁止地圖橫向循環，避免邊界圖塊請求失敗
+                noWrap: true 
             }).addTo(map);
             
             map.on('click', (e) => {
-                if (isLocked) return; // 若鎖定中，忽略點擊
+                if (isLocked || document.getElementById('map-page').style.display !== 'block') return;
                 
-                isLocked = true; // 點擊後鎖定
+                isLocked = true; // 鎖定點擊，防止玩家重複操作
                 
                 const targetPos = [currentTarget.lat, currentTarget.lng];
                 const dist = map.distance(e.latlng, targetPos);
@@ -73,8 +71,9 @@
                 polyline = L.polyline([e.latlng, targetPos], {color: '#e74c3c', weight: 4}).addTo(map);
                 
                 round++;
+                // 1.5 秒後解除鎖定並跳下一關
                 setTimeout(() => {
-                    isLocked = false; // 1.5秒後解除鎖定
+                    isLocked = false;
                     nextRound();
                 }, 1500);
             });
