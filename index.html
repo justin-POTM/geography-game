@@ -59,7 +59,8 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        let map, polyline, round, totalScore, currentTarget, remainingCities, currentCat, isLocked = false;
+    let map, polyline, round, totalScore, currentTarget, remainingCities, currentCat, isLocked = false;
+// ... (allQuestions 題庫內容保持不變，請保留你原本的 const allQuestions = [...] 部分)
 const allQuestions = [
     // --- 首都 ---
     { cat: '首都', name: "台北", lat: 25.033, lng: 121.565 }, { cat: '首都', name: "東京", lat: 35.676, lng: 139.650 }, { cat: '首都', name: "巴黎", lat: 48.856, lng: 2.352 }, { cat: '首都', name: "倫敦", lat: 51.507, lng: -0.127 }, { cat: '首都', name: "柏林", lat: 52.520, lng: 13.405 }, { cat: '首都', name: "羅馬", lat: 41.902, lng: 12.496 }, { cat: '首都', name: "馬德里", lat: 40.416, lng: -3.703 }, { cat: '首都', name: "莫斯科", lat: 55.755, lng: 37.617 }, { cat: '首都', name: "華盛頓", lat: 38.907, lng: -77.036 }, { cat: '首都', name: "渥太華", lat: 45.421, lng: -75.697 },
@@ -76,90 +77,86 @@ const allQuestions = [
     { cat: '自然', name: "安地斯山脈", lat: -32.653, lng: -70.010 }, { cat: '自然', name: "阿爾卑斯山", lat: 46.500, lng: 8.000 }, { cat: '自然', name: "維多利亞瀑布", lat: -17.924, lng: 25.856 }, { cat: '自然', name: "加拉巴哥群島", lat: -0.740, lng: -90.340 }, { cat: '自然', name: "冰島冰河", lat: 64.126, lng: -21.817 }, { cat: '自然', name: "馬爾地夫環礁", lat: 3.202, lng: 73.220 }, { cat: '自然', name: "烏魯魯", lat: -25.344, lng: 131.036 }, { cat: '自然', name: "埃特納火山", lat: 37.751, lng: 14.993 }, { cat: '自然', name: "塞倫蓋提", lat: -2.333, lng: 34.833 }, { cat: '自然', name: "珠穆朗瑪峰", lat: 27.988, lng: 86.925 },
     { cat: '自然', name: "科羅拉多河", lat: 36.100, lng: -112.100 }, { cat: '自然', name: "伊瓜蘇瀑布", lat: -25.695, lng: -54.436 }, { cat: '自然', name: "喀拉哈里沙漠", lat: -23.000, lng: 22.000 }, { cat: '自然', name: "剛果盆地", lat: -0.000, lng: 20.000 }, { cat: '自然', name: "巴塔哥尼亞", lat: -48.000, lng: -72.000 }, { cat: '自然', name: "阿拉斯加冰原", lat: 60.000, lng: -150.000 }, { cat: '自然', name: "貝加爾湖", lat: 53.500, lng: 108.000 }, { cat: '自然', name: "長白山天池", lat: 41.996, lng: 128.056 }, { cat: '自然', name: "喜馬拉雅山脈", lat: 28.000, lng: 85.000 }, { cat: '自然', name: "撒哈拉大沙漠", lat: 23.000, lng: 12.000 }
 ];
-
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById('map-page').style.display = 'none';
-            if(id === 'leaderboard-page') renderLeaderboard();
-            const target = document.getElementById(id);
-            if (target) target.style.display = 'flex';
-        }
-
-        function startGame(cat) {
-            currentCat = cat;
-            round = 1; // 確保關卡從 1 開始
-            totalScore = 0;
-            remainingCities = allQuestions.filter(q => q.cat === cat).sort(() => Math.random() - 0.5).slice(0, 10);
-            showPage('map-page');
-            if(!map) initMap();
-            document.getElementById('score-ui').innerText = "總分: 0";
-            map.invalidateSize();
-            nextRound();
-        }
-
-        function initMap() {
-            map = L.map('map', { attributionControl: false, zoomControl: false, tap: false }).setView([20, 0], 2);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { noWrap: true }).addTo(map);
-            map.on('click', (e) => {
-                if (isLocked) return;
-                isLocked = true;
-                const dist = map.distance(e.latlng, [currentTarget.lat, currentTarget.lng]);
-                const pts = Math.max(0, 100 - Math.floor(dist / 50000));
-                totalScore += pts;
-                document.getElementById('score-ui').innerText = "總分: " + totalScore;
-                
-                const floatText = document.createElement('div');
-                floatText.innerText = `+${pts}`;
-                floatText.style.cssText = `position:absolute; left:${e.originalEvent.clientX}px; top:${e.originalEvent.clientY}px; color:#2ecc71; font-weight:bold; font-size:24px; z-index:2000; transition: all 1s ease-out; pointer-events:none;`;
-                document.body.appendChild(floatText);
-                setTimeout(() => { floatText.style.top = (parseInt(floatText.style.top) - 80) + 'px'; floatText.style.opacity = '0'; }, 10);
-                setTimeout(() => floatText.remove(), 1000);
-
-                if(polyline) map.removeLayer(polyline);
-                polyline = L.polyline([e.latlng, [currentTarget.lat, currentTarget.lng]], {color: '#e74c3c', weight: 4}).addTo(map);
-                setTimeout(() => { isLocked = false; nextRound(); }, 1500);
-            });
-        }
-
-     function nextRound() {
-    // 檢查還剩下幾題，若等於 0 代表全部點完，直接觸發結算
-    if (remainingCities.length === 0) {
-        saveScore(); // 存檔
         
-        // 切換畫面
-        document.getElementById('map-page').style.display = 'none';
-        document.getElementById('final-score').innerText = "總分: " + totalScore;
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-        document.getElementById('result-page').style.display = 'flex';
-        return;
-    }
-    
-    // 繼續下一關
-    if(polyline) map.removeLayer(polyline);
-    currentTarget = remainingCities.pop();
-    document.getElementById('task-ui').innerText = `第 ${11 - remainingCities.length}/10 關：${currentTarget.name}`;
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    document.getElementById('map-page').style.display = 'none';
+    if(id === 'leaderboard-page') renderLeaderboard();
+    const target = document.getElementById(id);
+    if (target) target.style.display = 'flex';
 }
 
-        function saveScore() {
-            let scores = JSON.parse(localStorage.getItem('geoScores') || '{}');
-            if(!scores[currentCat]) scores[currentCat] = [];
-            scores[currentCat].push(totalScore);
-            scores[currentCat].sort((a,b) => b-a);
-            localStorage.setItem('geoScores', JSON.stringify(scores));
-        }
+function startGame(cat) {
+    currentCat = cat;
+    round = 1; 
+    totalScore = 0;
+    remainingCities = allQuestions.filter(q => q.cat === cat).sort(() => Math.random() - 0.5).slice(0, 10);
+    showPage('map-page');
+    if(!map) initMap();
+    document.getElementById('score-ui').innerText = "總分: 0";
+    map.invalidateSize();
+    loadNextQuestion();
+}
+
+function initMap() {
+    map = L.map('map', { attributionControl: false, zoomControl: false, tap: false }).setView([20, 0], 2);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { noWrap: true }).addTo(map);
+    map.on('click', onMapClick);
+}
+
+function onMapClick(e) {
+    if (isLocked) return;
+    isLocked = true;
+    const dist = map.distance(e.latlng, [currentTarget.lat, currentTarget.lng]);
+    const pts = Math.max(0, 100 - Math.floor(dist / 50000));
+    totalScore += pts;
+    document.getElementById('score-ui').innerText = "總分: " + totalScore;
+    
+    // 繪製連線
+    if(polyline) map.removeLayer(polyline);
+    polyline = L.polyline([e.latlng, [currentTarget.lat, currentTarget.lng]], {color: '#e74c3c', weight: 4}).addTo(map);
+    
+    setTimeout(() => { 
+        isLocked = false; 
+        round++;
+        loadNextQuestion(); 
+    }, 1500);
+}
+
+function loadNextQuestion() {
+    if (round > 10) {
+        finishGame();
+        return;
+    }
+    if(polyline) map.removeLayer(polyline);
+    currentTarget = remainingCities.pop();
+    document.getElementById('task-ui').innerText = `第 ${round}/10 關：${currentTarget.name}`;
+}
+
+function finishGame() {
+    saveScore();
+    document.getElementById('map-page').style.display = 'none';
+    document.getElementById('final-score').innerText = "總分: " + totalScore;
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    document.getElementById('result-page').style.display = 'flex';
+}
+
+function saveScore() {
+    let scores = JSON.parse(localStorage.getItem('geoScores') || '{}');
+    if(!scores[currentCat]) scores[currentCat] = [];
+    scores[currentCat].push(totalScore);
+    scores[currentCat].sort((a,b) => b - a);
+    scores[currentCat] = scores[currentCat].slice(0, 5);
+    localStorage.setItem('geoScores', JSON.stringify(scores));
+    console.log("儲存成功! 分類:", currentCat, "分數:", totalScore);
+}
 
 function renderLeaderboard() {
-    let rawData = localStorage.getItem('geoScores');
-    console.log("當前儲存的資料:", rawData); // 按 F12 在 Console 看有沒有東西
-
-    let scores = JSON.parse(rawData || '{}');
-    
+    let scores = JSON.parse(localStorage.getItem('geoScores') || '{}');
     ['首都', '地標', '自然'].forEach(cat => {
         let container = document.getElementById('lb-' + cat);
         if (scores[cat] && scores[cat].length > 0) {
-            // 顯示前五名
-            let list = scores[cat].slice(0, 5).map((s, index) => `${index+1}. ${s}分`).join('<br>');
-            container.innerHTML = list;
+            container.innerHTML = scores[cat].map((s, i) => `${i+1}. ${s}分`).join('<br>');
         } else {
             container.innerHTML = '尚無挑戰紀錄';
         }
