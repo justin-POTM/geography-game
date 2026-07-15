@@ -37,47 +37,45 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         let map, polyline, round, totalScore, currentTarget, remainingCities;
-        const cityList = [{ name: "台北", lat: 25.033, lng: 121.565 }, { name: "東京", lat: 35.676, lng: 139.650 }, { name: "巴黎", lat: 48.856, lng: 2.352 }, { name: "倫敦", lat: 51.507, lng: -0.127 }, { name: "紐約", lat: 40.712, lng: -74.006 }, { name: "雪梨", lat: -33.868, lng: 151.209 }];
+        const cityList = [
+            { name: "台北", lat: 25.033, lng: 121.565 }, { name: "東京", lat: 35.676, lng: 139.650 }, 
+            { name: "巴黎", lat: 48.856, lng: 2.352 }, { name: "倫敦", lat: 51.507, lng: -0.127 }, 
+            { name: "紐約", lat: 40.712, lng: -74.006 }, { name: "雪梨", lat: -33.868, lng: 151.209 },
+            { name: "開羅", lat: 30.044, lng: 31.235 }, { name: "里約", lat: -22.906, lng: -43.172 },
+            { name: "莫斯科", lat: 55.755, lng: 37.617 }, { name: "開普敦", lat: -33.924, lng: 18.424 }
+        ];
 
         window.onload = () => {
             renderLeaderboard();
-            map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(map);
+            // 設定地圖邊界，並關閉循環 (noWrap)
+            map = L.map('map', { 
+                attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false,
+                maxBounds: [[-90, -180], [90, 180]],
+                maxBoundsViscosity: 1.0 
+            }).setView([20, 0], 2);
             
-map.on('click', (e) => {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { 
+                subdomains: 'abcd',
+                noWrap: true 
+            }).addTo(map);
+            
+            map.on('click', (e) => {
                 if (document.getElementById('map-page').style.display !== 'block') return;
-
-                // 1. 找出最近的副本坐標 (這部分原本的邏輯是對的)
-                let possibleLngs = [currentTarget.lng, currentTarget.lng - 360, currentTarget.lng + 360];
-                let minDist = Infinity;
-                let bestTarget = [currentTarget.lat, currentTarget.lng];
-
-                possibleLngs.forEach(lng => {
-                    let d = map.distance(e.latlng, [currentTarget.lat, lng]);
-                    if (d < minDist) { minDist = d; bestTarget = [currentTarget.lat, lng]; }
-                });
-
-                // 2. 評分
-                const pts = Math.max(0, 100 - Math.floor(minDist / 50000));
+                
+                const targetPos = [currentTarget.lat, currentTarget.lng];
+                const dist = map.distance(e.latlng, targetPos);
+                const pts = Math.max(0, 100 - Math.floor(dist / 50000));
+                
                 totalScore += pts;
                 updateScore(pts);
 
-                // 3. 修正紅線：
-                // 如果兩點經度差超過 180 度，Leaflet 會畫出一條繞地球的長線
-                // 我們改用更簡單的顯示方式：直接在點擊處和目標點畫線
                 if(polyline) map.removeLayer(polyline);
-                
-                // 這是最簡單也最穩定的畫線法
-                polyline = L.polyline([e.latlng, bestTarget], {
-                    color: '#e74c3c', 
-                    weight: 4,
-                    noClip: true // 防止 Leaflet 自動對線條進行剪裁導致的視覺錯誤
-                }).addTo(map);
+                polyline = L.polyline([e.latlng, targetPos], {color: '#e74c3c', weight: 4}).addTo(map);
                 
                 round++;
                 setTimeout(nextRound, 1500);
             });
-        }; // <--- 這裡補上了 window.onload 的閉合括號
+        };
 
         function updateScore(pts) {
             document.getElementById('score-board').innerText = "總分: " + totalScore;
@@ -97,7 +95,7 @@ map.on('click', (e) => {
         }
 
         function nextRound() {
-            if (round > 5) {
+            if (round > 10) { // 設定為 10 關
                 saveScore(totalScore);
                 document.getElementById('final-score').innerText = "最終得分：" + totalScore;
                 document.getElementById('map-page').style.display = 'none';
@@ -106,7 +104,7 @@ map.on('click', (e) => {
             }
             if(polyline) map.removeLayer(polyline);
             currentTarget = remainingCities.pop();
-            document.getElementById('ui').innerText = `請找到 ${currentTarget.name}`;
+            document.getElementById('ui').innerText = `第 ${round}/10 關：請找到 ${currentTarget.name}`;
         }
 
         function saveScore(score) {
@@ -118,7 +116,7 @@ map.on('click', (e) => {
 
         function renderLeaderboard() {
             let s = JSON.parse(localStorage.getItem('geoScores') || '[]');
-            document.getElementById('leaderboard-display').innerHTML = "<h3>排行榜</h3>" + (s.length ? s.map((v,i) => `${i+1}. ${v} 分`).join('<br>') : "暫無紀錄");
+            document.getElementById('leaderboard-display').innerHTML = "<h3>排行榜 (前5名)</h3>" + (s.length ? s.map((v,i) => `${i+1}. ${v} 分`).join('<br>') : "暫無紀錄");
         }
     </script>
 </body>
