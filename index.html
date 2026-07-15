@@ -65,10 +65,11 @@
 
         window.onload = function() {
             map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6, zoomControl: false }).setView([20, 0], 2);
-            // 使用最穩定的開源圖層
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(map);
+// 使用 Alidade Smooth 的 "無標籤" 版本 (No Labels)
+L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_no_labels/{z}/{x}/{y}{r}.png?api_key=2c5f75f1-937e-48e9-9031-c5b0c24f6d23', {
+    attribution: 'Map data &copy; Stadia Maps',
+    maxZoom: 20
+}).addTo(map);
 
             map.on('click', function(e) {
                 if (document.getElementById('map-page').style.display !== 'block') return;
