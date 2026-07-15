@@ -121,20 +121,24 @@ const allQuestions = [
             });
         }
 
-        function nextRound() {
-            if (round > 10) {
-                saveScore();
-                document.getElementById('map-page').style.display = 'none';
-                document.getElementById('final-score').innerText = "總分: " + totalScore;
-                document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-                document.getElementById('result-page').style.display = 'flex';
-                return;
-            }
-            if(polyline) map.removeLayer(polyline);
-            currentTarget = remainingCities.pop();
-            document.getElementById('task-ui').innerText = `第 ${round}/10 關：${currentTarget.name}`;
-            round++;
-        }
+     function nextRound() {
+    // 檢查還剩下幾題，若等於 0 代表全部點完，直接觸發結算
+    if (remainingCities.length === 0) {
+        saveScore(); // 存檔
+        
+        // 切換畫面
+        document.getElementById('map-page').style.display = 'none';
+        document.getElementById('final-score').innerText = "總分: " + totalScore;
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        document.getElementById('result-page').style.display = 'flex';
+        return;
+    }
+    
+    // 繼續下一關
+    if(polyline) map.removeLayer(polyline);
+    currentTarget = remainingCities.pop();
+    document.getElementById('task-ui').innerText = `第 ${11 - remainingCities.length}/10 關：${currentTarget.name}`;
+}
 
         function saveScore() {
             let scores = JSON.parse(localStorage.getItem('geoScores') || '{}');
