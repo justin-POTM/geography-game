@@ -152,10 +152,26 @@ function saveScore() {
 }
 
 function renderLeaderboard() {
-    let scores = JSON.parse(localStorage.getItem('geoScores') || '{}');
+    // 1. 強制讀取並解析
+    let rawData = localStorage.getItem('geoScores');
+    console.log("正在讀取排行榜，原始資料為:", rawData); 
+
+    if (!rawData) {
+        console.log("警告: localStorage 裡沒有 geoScores");
+        document.querySelectorAll('[id^="lb-"]').forEach(el => el.innerHTML = "尚無挑戰紀錄");
+        return;
+    }
+
+    let scores = JSON.parse(rawData);
+    console.log("解析後的物件結構:", scores);
+
+    // 2. 針對三個分類進行更新
     ['首都', '地標', '自然'].forEach(cat => {
         let container = document.getElementById('lb-' + cat);
-        if (scores[cat] && scores[cat].length > 0) {
+        
+        // 檢查該分類下是否有資料
+        if (scores[cat] && Array.isArray(scores[cat]) && scores[cat].length > 0) {
+            // 渲染列表
             container.innerHTML = scores[cat].map((s, i) => `${i+1}. ${s}分`).join('<br>');
         } else {
             container.innerHTML = '尚無挑戰紀錄';
