@@ -41,12 +41,10 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // 初始化地圖，並使用你的 API Key
-        const map = L.map('map', { attributionControl: false, minZoom: 2, maxZoom: 6 }).setView([20, 0], 2);
-        L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_retina/{z}/{x}/{y}{r}.png?api_key=2c5f75f1-937e-48e9-9031-c5b0c24f6d23', {
-            attribution: 'Stadia Maps',
-            maxZoom: 20
-        }).addTo(map);
+// 使用最通用的 OpenStreetMap 伺服器，不需要 API Key，格式標準
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
         // 30 個城市資料庫
         const cityList = [
