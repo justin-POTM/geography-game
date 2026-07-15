@@ -144,13 +144,23 @@ const allQuestions = [
             localStorage.setItem('geoScores', JSON.stringify(scores));
         }
 
-        function renderLeaderboard() {
-            let scores = JSON.parse(localStorage.getItem('geoScores') || '{}');
-            ['首都', '地標', '自然'].forEach(cat => {
-                let list = scores[cat] ? scores[cat].slice(0, 5).map(s => s + '分').join('<br>') : '暫無紀錄';
-                document.getElementById('lb-' + cat).innerHTML = list;
-            });
+function renderLeaderboard() {
+    let rawData = localStorage.getItem('geoScores');
+    console.log("當前儲存的資料:", rawData); // 按 F12 在 Console 看有沒有東西
+
+    let scores = JSON.parse(rawData || '{}');
+    
+    ['首都', '地標', '自然'].forEach(cat => {
+        let container = document.getElementById('lb-' + cat);
+        if (scores[cat] && scores[cat].length > 0) {
+            // 顯示前五名
+            let list = scores[cat].slice(0, 5).map((s, index) => `${index+1}. ${s}分`).join('<br>');
+            container.innerHTML = list;
+        } else {
+            container.innerHTML = '尚無挑戰紀錄';
         }
+    });
+}
     </script>
 </body>
 </html>
